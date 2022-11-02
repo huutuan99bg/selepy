@@ -152,7 +152,7 @@ class Selepy:
                             p.match(/.+_.+_(Array|Promise|Symbol)/ig)
                                 && delete window[p]
                         })
-                        console.log('Selepy bypass cloudflare running')
+                        console.log('Selepy bypass detect automation running!')
                     } catch (e) { }
                     """
             },
