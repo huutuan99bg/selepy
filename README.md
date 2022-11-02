@@ -1,19 +1,19 @@
 # Selepy - website testing tool base on selenium
 # Documents
-Automate google chrome with selenium<br />
-Args: <br />
-__chrome_profile: str - path to chrome profile<br />
-__proxy: str(host:port) - set proxy to chrome <br />
-__binary_location: str - path to chrome.exe location<br />
-__binary_auto: bool - auto check binary location<br />
-__images: bool - option enable/disable images<br />
-__audio: bool - option enable/disable audio<br />
-__headless: bool - option enable/disable headless<br />
-__load_extensions: list[str] - load unpacked extensions<br />
-__add_extensions: list[str] - add pack extensions<br />
-__incognito: bool - option open incognito mode<br />
-__disable_webrtc: bool - option disable/enable webrtc<br />
-__chrome_agrs: list[str] - more chrome arguments<br />
+Automate google chrome with selenium\
+Args: \
+&emsp;&emsp;chrome_profile: str - path to chrome profile<br />
+&emsp;&emsp;proxy: str(host:port) - set proxy to chrome <br />
+&emsp;&emsp;binary_location: str - path to chrome.exe location<br />
+&emsp;&emsp;binary_auto: bool - auto check binary location<br />
+&emsp;&emsp;images: bool - option enable/disable images<br />
+&emsp;&emsp;audio: bool - option enable/disable audio<br />
+&emsp;&emsp;headless: bool - option enable/disable headless<br />
+&emsp;&emsp;load_extensions: list[str] - load unpacked extensions<br />
+&emsp;&emsp;add_extensions: list[str] - add pack extensions<br />
+&emsp;&emsp;incognito: bool - option open incognito mode<br />
+&emsp;&emsp;disable_webrtc: bool - option disable/enable webrtc<br />
+&emsp;&emsp;chrome_agrs: list[str] - more chrome arguments<br />
 
 # Example:
 ```python
