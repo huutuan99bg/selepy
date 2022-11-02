@@ -1,1 +1,1 @@
-# Selepy - selenium-based website testing toolkit
+# Selepy - website testing tool base on selenium
