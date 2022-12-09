@@ -1,3 +1,7 @@
+import requests
+import zipfile
+import pathlib
+import re
 import json
 import os
 import shutil
@@ -5,17 +9,204 @@ from os.path import join, dirname
 from time import sleep, time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-try:
-    from csmodules.cswait import SWait
-except:
-    from cswait import SWait
-import requests
-import zipfile
-import pathlib
-import re
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
+
+class CustomDriver(webdriver.Chrome):
+    def __init__(self, *args, **kwargs):
+        webdriver.Chrome.__init__(self, *args, **kwargs)
+
+    def execute_first_script(self, script):
+        try:
+            self.execute_cdp_cmd(
+                "Page.addScriptToEvaluateOnNewDocument",
+                {
+                    "source": script
+                },
+            )
+        except Exception as e:
+            print(e)
+            return False
+
+    def close_another(self):
+        try:
+            current_window = self.current_window_handle
+            for w in self.window_handles:
+                if w != current_window:
+                    self.switch_to.window(w)
+                    self.close()
+            self.switch_to.window(current_window)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def execute_first_script_from_file(self, script_path):
+        try:
+            script =open(script_path, "r").read()
+            self.execute_cdp_cmd(
+                "Page.addScriptToEvaluateOnNewDocument",
+                {
+                    "source": script
+                },
+            )
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def get_element_by_xpath(self, xpath, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.XPATH, xpath)))
+            return self.find_element(By.XPATH, xpath)
+        except TimeoutException as exception: 
+            return False
+
+    def get_elements_by_xpath(self, xpath, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.XPATH, xpath)))
+            return self.find_elements(By.XPATH, xpath)
+        except TimeoutException as exception: 
+            return False
+
+    def click_by_xpath(self, xpath, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.XPATH, xpath))).click()
+            return True
+        except TimeoutException as exception: 
+            return False
+
+    def click_by_xpaths(self,xpaths:list,time_wait = 1, timeout = 5):
+        try:
+            count = 0
+            while count < timeout:
+                for xpath in xpaths:
+                    try:
+                        WebDriverWait(self, 0.1).until(EC.visibility_of_element_located((By.XPATH, xpath))).click()
+                    except:
+                        continue
+                real_wait = time_wait - 0.1*len(xpaths)
+                print('real wait: '+str(real_wait))
+                sleep(real_wait)
+                count = count + time_wait
+            return True
+        except TimeoutException as exception: 
+            return False
+
+    def send_keys_by_xpath(self,xpath,text, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.XPATH, xpath))).send_keys(text)
+            return True
+        except TimeoutException as exception: 
+            return False
+
+    def get_attribute_by_xpath(self,xpath,attribute_name, timeout = 5):
+        try:
+            str = WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.XPATH, xpath))).get_attribute(attribute_name)
+            return str if str != None else 'attribute_not_found'
+        except TimeoutException as exception: 
+            return False
+
+    def wait_element_by_xpath(self, xpath, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.XPATH, xpath)))
+            return True
+        except:
+            return False
+   
+    # By Selector 
+    def click_by_selector(self,selector, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector))).click()
+            return True
+        except TimeoutException as exception: 
+            return False
+
+    def find_by_selector(self,selector, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
+            return True
+        except TimeoutException as exception: 
+            return False
+
+    def send_keys_by_selector(self,selector,text, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector))).send_keys(text)
+            return True
+        except TimeoutException as exception: 
+            return False
+
+    def get_attribute_by_selector(self,selector,attribute_name, timeout = 5):
+        try:
+            str = WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector))).get_attribute(attribute_name)
+            return str if str != None else 'attribute_not_found'
+        except TimeoutException as exception: 
+            return False
+        
+    # By ID 
+    def click_by_id(self,id, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.ID, id))).click()
+            return True
+        except TimeoutException as exception: 
+            return False
+
+    def send_keys_by_id(self,id,text, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.ID, id))).send_keys(text)
+            return True
+        except TimeoutException as exception: 
+            return False
+
+    def get_attribute_by_id(self,id,attribute, timeout = 5):
+        try:
+            str = WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.ID, id))).get_attribute(attribute)
+            return str if str != None else 'attribute_not_found'
+        except TimeoutException as exception: 
+            return False
+
+    def switch_to_frame_by_id(self,id, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.frame_to_be_available_and_switch_to_it((By.id,id)))
+            return True
+        except TimeoutException as exception: 
+            return False
+            
+    def wait_element_by_id(self,id, timeout = 5):
+        try:
+            WebDriverWait(self, timeout).until(EC.visibility_of_element_located((By.ID,id)))
+            return True
+        except TimeoutException as exception: 
+            return False
+    # Go to nexttab
+    def wait_next_tab(self, timeout = 5):
+        time = 0
+        while time < timeout:
+            try:
+                self.switch_to.window(window_name= self.window_handles[+1])
+                return True
+            except:
+                time = time+0.1
+                continue
+        return False
+
+    def wait_tab(self, tab_index, timeout = 5):
+        time = 0
+        while time < timeout:
+            try:
+                self.switch_to.window(window_name= self.window_handles[tab_index])
+                return True
+            except:
+                time = time+0.1
+                continue
+        return False
 
 
-class Selepy:
+class Selepy(CustomDriver):
     def __init__(self):
         print('|\t'+self.emoji('heart')+'\tCS WebDriver\t'+self.emoji('success')+'\t|')
         self.home = str(pathlib.Path.home())
@@ -152,17 +343,18 @@ class Selepy:
                             p.match(/.+_.+_(Array|Promise|Symbol)/ig)
                                 && delete window[p]
                         })
-                        console.log('Selepy bypass detect automation running!')
+                        //console.log('Selepy bypass detect automation running!')
                     } catch (e) { }
                     """
             },
         )
+        
 
     def open_driver(self, chrome_profile: str = None, proxy: str = None, binary_location: str = None, binary_auto: bool = True, images: bool = True, audio: bool = True, headless: bool = False, load_extensions: list = [], add_extensions: list = [],  incognito: bool = False, disable_webrtc: bool = False, chrome_agrs: list = [],):
         """
         Open chrome with selenium
         Args: 
-            [chrome_profile]: str - path to chrome profile
+            chrome_profile: str - path to chrome profile
             proxy: str(host:port) - set proxy to chrome 
             binary_location: str - path to chrome.exe location
             binary_auto: bool - auto check binary location
@@ -230,13 +422,14 @@ class Selepy:
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_experimental_option('useAutomationExtension', True)
         options.add_argument('--no-sandbox')
+        options.add_argument('--lang=en')
+
         # options.add_argument('--disable-dev-shm-usage')
         if chrome_profile != None:
             options.add_argument("user-data-dir="+chrome_profile)
         options.add_argument("force-webrtc-ip-handling-policy")
-
-        self.driver = webdriver.Chrome(self.chromedriver, options=options)
+        # self.driver = webdriver.Chrome(self.chromedriver, options=options)
+        self.driver = CustomDriver(self.chromedriver, options=options)
         self.driver.implicitly_wait(2)
         self._hook_remove_cdc_props()
-        self.cswait = SWait(self.driver)
-        return (self.driver, self.cswait)
+        return self.driver
