@@ -20,5 +20,5 @@ Args: \
 chrome_path = r'E:\ChromePortable\Data\profile'
 proxy = '192.168.0.103:4020'
 print('Open chrome')
-(driver,cswait) = Selepy().open_driver(chrome_profile= chrome_path,proxy= proxy, images=False,)
+driver = Selepy().open_driver(chrome_profile= chrome_path,proxy= proxy, images=False,)
 ```
