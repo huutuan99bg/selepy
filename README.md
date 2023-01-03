@@ -1,6 +1,7 @@
 # Selepy - website testing tool base on selenium
 # Documents
 Automate google chrome with selenium\
+Features: Bypass cloudflare, fix some bugs of selenium core, and many other features...
 Args: \
 &emsp;&emsp;chrome_profile: str - path to chrome profile<br />
 &emsp;&emsp;proxy: str(host:port) - set proxy to chrome <br />
