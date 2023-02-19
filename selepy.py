@@ -204,7 +204,22 @@ class CustomDriver(webdriver.Chrome):
                 time = time+0.1
                 continue
         return False
-
+        
+    def cs_quit(self, delete_path = None):
+        for window_handle in self.window_handles:
+            self.switch_to.window(window_handle)
+            self.close()
+            
+        if delete_path != None:
+            for i in range(100):
+                if os.path.exists(delete_path) == False:
+                    break
+                try:
+                    shutil.rmtree(delete_path)
+                    if os.path.exists(delete_path) == False:
+                        break
+                except:
+                    sleep(.1)
 
 class Selepy(CustomDriver):
     def __init__(self):
@@ -212,13 +227,26 @@ class Selepy(CustomDriver):
         self.home = str(pathlib.Path.home())
         self.chrome_path = self.binary_path = self._get_chrome_path()
         self.chrome_version = self._get_chrome_version()
+        
         if self.chrome_version == False:
             return False
-        self.chromedriver_version = self._get_lastest_release()
         self.cache_path = join(self.home, 'cschromedriver')
+        cahce_checker = self.check_chromedriver_version()
+        if cahce_checker is False:
+            self.chromedriver_version = self._get_lastest_release()
+        else:
+            self.chromedriver_version = cahce_checker
         self.chromedriver_path = join(self.cache_path, self.chromedriver_version, 'chromedriver.exe')
         self.chromedriver_zip_path = join(self.cache_path, self.chromedriver_version, 'chromedriver_win32.zip')
         self.chromedriver = self.path = self.get_chromedriver()
+
+    def check_chromedriver_version(self):
+        try:
+            chrome_ver = self.chrome_version.split('.')[0]
+            cache_ver = os.listdir(self.cache_path)[0]
+            return cache_ver if cache_ver.split('.')[0] == chrome_ver else False
+        except:
+            return False
 
     def emoji(self, option, quantity=1):
         output = ''
@@ -350,7 +378,7 @@ class Selepy(CustomDriver):
         )
         
 
-    def open_driver(self, chrome_profile: str = None, proxy: str = None, binary_location: str = None, binary_auto: bool = True, images: bool = True, audio: bool = True, headless: bool = False, load_extensions: list = [], add_extensions: list = [],  incognito: bool = False, disable_webrtc: bool = False, chrome_agrs: list = [],):
+    def open_driver(self, chrome_profile: str = None, proxy: str = None, binary_location: str = None, binary_auto: bool = True, images: bool = True, audio: bool = True, headless: bool = False, load_extensions: list = [], add_extensions: list = [],  incognito: bool = False, disable_webrtc: bool = False, chrome_agrs: list = [], disable_password = True ):
         """
         Open chrome with selenium
         Args: 
@@ -383,8 +411,11 @@ class Selepy(CustomDriver):
         # Images
         img_option = 1 if images == True else 2
         preferences["profile.managed_default_content_settings.images"] = img_option
+        
+        if disable_password == True:
+            preferences["credentials_enable_service"] =  False
+            preferences["profile.password_manager_enabled"] = False
         options.add_experimental_option("prefs", preferences)
-
         if headless == True:
             options.add_argument('--headless')
 
@@ -429,6 +460,7 @@ class Selepy(CustomDriver):
             options.add_argument("user-data-dir="+chrome_profile)
         options.add_argument("force-webrtc-ip-handling-policy")
         # self.driver = webdriver.Chrome(self.chromedriver, options=options)
+
         self.driver = CustomDriver(self.chromedriver, options=options)
         self.driver.implicitly_wait(2)
         self._hook_remove_cdc_props()
