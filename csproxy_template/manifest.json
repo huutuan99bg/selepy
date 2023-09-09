@@ -1,0 +1,19 @@
+{
+    "background": {
+        "scripts": [
+            "proxy.js"
+        ]
+    },
+    "manifest_version": 2,
+    "name": "Mr.T Proxy",
+    "short_name": "mrt_proxy",
+    "permissions": [
+        "proxy",
+        "storage",
+        "<all_urls>",
+        "webRequest",
+        "webRequestBlocking",
+        "*://*/*"
+    ],
+    "version": "0.0.1"
+}
